@@ -1,0 +1,50 @@
+TRIGGERS
+
+1) DELIMITER $$
+
+CREATE TRIGGER patient_archive BEFORE DELETE ON patients
+ FOR EACH ROW BEGIN
+ 
+    SET @DOC_ID := (Select doctor_ID FROM diagnos WHERE diagnos.Patient_ID = old.Patient_ID);
+    SET @DAG_ID := (Select diagnos_ID FROM diagnos WHERE diagnos.Patient_ID = old.Patient_ID);
+    set @idx := (SELECT MAX(archive_ID) FROM archive);
+    
+    INSERT INTO archive VALUES(COALESCE(@idx, 0)+1, old.patient_id, old.name, old.surname, old.age, old.gender, old.home_address, old.phone_number, COALESCE(@DOC_ID, 0), COALESCE(@DAG_ID, 0));
+END $$
+
+DELIMITER ;;
+
+
+
+
+2) DELIMITER $$
+
+CREATE TRIGGER patient_bed AFTER INSERT ON inpatient
+ FOR EACH ROW BEGIN
+  
+    set @bed := (SELECT number_of_beds from rooms WHERE rooms.Room_ID = new.Room_ID);
+    
+    UPDATE rooms set number_of_beds = @bed-1 WHERE rooms.Room_ID = new.Room_ID;
+
+END $$
+DELIMITER ;;
+
+3) DELIMITER $$
+ CREATE TRIGGER change_bed BEFORE UPDATE
+   ON inpatient FOR EACH ROW
+BEGIN
+   UPDATE rooms SET Number_of_beds = Number_of_beds - 1 WHERE rooms.Room_ID = new.Room_ID;
+    UPDATE rooms SET Number_of_beds = Number_of_beds + 1 WHERE rooms.Room_ID = old.Room_ID;
+END $$
+DELIMITER ;;
+
+
+Transaction
+1)START TRANSACTION; 
+    INSERT INTO patients VALUES(102 , 'Callie' , 'Stovold' , 18 ,'Female' , '743 Truax Street' , '+7 (463) 599-9466)'); 
+        INSERT INTO DISEASE VALUES('Anemy' , 'Weak people'); 
+        INSERT INTO DIAGNOS VALUES(102 , 'Tagy da bir narse dedin' , 34 , 102); 
+        INSERT INTO DRUGS VALUES('Qoidyn maiy' , 99990 , 'Home29' , 'Best description'); 
+        INSERT INTO TREATMENT VALUES(102 , 102 , 'Qoidyn maiy'); 
+        INSERT INTO medical_records VALUES (34 , 102 , 102 , 102 , 'Anemy'); 
+COMMIT; 

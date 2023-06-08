@@ -1,0 +1,11 @@
+//VIEW
+
+CREATE VIEW busy_rooms as 
+SELECT rooms.Room_ID, rooms.Ward_ID FROM rooms, inpatient, wards  
+WHERE wards.Ward_ID = rooms.Ward_ID && rooms.Room_ID = inpatient.Room_ID; 
+
+//INDEXES
+
+1) CREATE INDEX patientname ON Patient(patient_id , name , surname); 
+2) CREATE INDEX doctorname ON Doctor(doctor_id); 
+3) CREATE INDEX diseasename ON disease(disease_name);
